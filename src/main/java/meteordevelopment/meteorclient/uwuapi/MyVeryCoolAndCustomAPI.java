@@ -181,16 +181,20 @@ public class MyVeryCoolAndCustomAPI {
 
     @Nullable
     public static Integer getAccountPoolSize(){
-        return Http.get(apiBase + "/mcaccs/count")
+        String response = Http.get(apiBase + "/mcaccs/count")
             .bearer(accessToken)
-            .sendJson(Integer.class);
+            .sendString();
+        if(response == null) return null;
+        return Integer.parseInt(response);
     }
 
     @Nullable
     public static Integer getProxyPoolSize() {
-        return Http.get(apiBase + "/proxies/count")
+        String response = Http.get(apiBase + "/proxies/count")
             .bearer(accessToken)
-            .sendJson(Integer.class);
+            .sendString();
+        if (response == null) return null;
+        return Integer.parseInt(response);
     }
 
     public static AccessTokenDAO getAccessTokenInfoByUUID(String uuid){
