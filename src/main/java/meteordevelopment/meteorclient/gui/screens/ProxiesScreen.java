@@ -15,9 +15,12 @@ import meteordevelopment.meteorclient.gui.widgets.pressable.WButton;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WCheckbox;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WMinus;
 import meteordevelopment.meteorclient.settings.Settings;
+import meteordevelopment.meteorclient.systems.mcacapi.gui.login.LoginScreen;
 import meteordevelopment.meteorclient.systems.proxies.Proxies;
 import meteordevelopment.meteorclient.systems.proxies.Proxy;
+import meteordevelopment.meteorclient.systems.proxies.ProxyType;
 import meteordevelopment.meteorclient.utils.misc.NbtUtils;
+import meteordevelopment.meteorclient.uwuapi.MyVeryCoolAndCustomAPI;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryUtil;
@@ -27,6 +30,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
@@ -49,6 +53,34 @@ public class ProxiesScreen extends WindowScreen {
         // New
         WButton newBtn = l.add(theme.button("New")).expandX().widget();
         newBtn.action = () -> mc.setScreen(new EditProxyScreen(theme, null, this::reload));
+
+        WButton apiProxyBtn = l.add(theme.button("ApiProxy")).expandX().widget();
+        apiProxyBtn.action = () -> {
+           List< MyVeryCoolAndCustomAPI.ProxyDAO> dao = MyVeryCoolAndCustomAPI.getProxies();
+           if(dao == null) {
+               mc.setScreen(new LoginScreen());
+               return;
+           };
+           Proxies.get().iterator().forEachRemaining(proxies -> {
+               if(proxies.name.get() == null || proxies.name.get().isBlank()) return;
+               dao.removeIf(p -> p.getId().toString().equals(proxies.name.get()));
+           });
+            MyVeryCoolAndCustomAPI.ProxyDAO random = dao.get(new Random().nextInt(0, dao.size() - 1));
+            Proxy pr = new Proxy.Builder().
+                name(random.getId().toString())
+                .address(random.getHost())
+                .port(random.getPort())
+                .type(switch (random.getProtocol()) {
+                    case "socks4" -> ProxyType.Socks4;
+                    case "http" -> ProxyType.Http;
+                    case "socks5" -> ProxyType.Socks5;
+                    default -> throw new IllegalStateException("Unexpected value: " + random.getProtocol());
+                })
+                .build();
+            Proxies.get().add(pr);
+            Proxies.get().setEnabled(pr,true);
+            reload();
+        };
 
         // Import
         PointerBuffer filters = BufferUtils.createPointerBuffer(1);

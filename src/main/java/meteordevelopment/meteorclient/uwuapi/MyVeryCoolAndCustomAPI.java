@@ -5,6 +5,7 @@
 
 package meteordevelopment.meteorclient.uwuapi;
 
+import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,15 +15,14 @@ import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.systems.accounts.MicrosoftLogin;
 import meteordevelopment.meteorclient.systems.mcacapi.UwUAcData;
 import meteordevelopment.meteorclient.systems.mcacapi.daos.UwUAccountDAO;
+import meteordevelopment.meteorclient.systems.proxies.Proxies;
+import meteordevelopment.meteorclient.systems.proxies.Proxy;
 import meteordevelopment.meteorclient.utils.network.Http;
 import meteordevelopment.meteorclient.utils.player.TitleScreenCredits;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -77,6 +77,56 @@ public class MyVeryCoolAndCustomAPI {
         return !refreshToken.isEmpty();
     }
 
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ObjectId{
+        private long timestamp, date;
+
+        public String toString(){
+            return String.valueOf(timestamp) + String.valueOf(date);
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ProxyDAO {
+        private ObjectId id;
+
+        private String protocol; // http, socks4, socks5
+
+        private String host;
+
+        private int port;
+
+        private String fullUrl; // e.g., "http://1.2.3.4:80"
+
+        private long lastValidated;
+
+        private long addedAt;
+    }
+
+    public static List<ProxyDAO> getProxies(){
+        if(!ensureValidToken()){
+            return  null;
+        }
+        return Http.get(apiBase + "/proxies")
+            .bearer(accessToken)
+            .sendJson(new TypeToken<List<ProxyDAO>>(){}.getType());
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class AccessTokenDAO {
+        @SerializedName("access_token")
+        private String accessToken;
+        private String uuid;
+        private String username;
+    }
+
+
     /**
      * Ensures we have a valid access token, refreshing if necessary.
      *
@@ -109,6 +159,7 @@ public class MyVeryCoolAndCustomAPI {
         accessToken = response.accessToken;
         accessTokenExpiry = response.expiry;
         refreshToken = response.refreshToken; // API returns new refresh token each time
+        // 15 mins normally
 
         // Persist the new refresh token since it changes on every refresh
         try {
@@ -128,6 +179,12 @@ public class MyVeryCoolAndCustomAPI {
             .sendJson(UwUAccountDAO.class);
     }
 
+    public static AccessTokenDAO getAccessTokenInfoByUUID(String uuid){
+        return Http.get(apiBase + "/mcaccs/" + uuid + "/at")
+            .bearer(accessToken)
+            .sendJson(AccessTokenDAO.class);
+    }
+
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
@@ -137,6 +194,7 @@ public class MyVeryCoolAndCustomAPI {
         private String mcuuid;
     }
 
+    @Deprecated
     public static void updateUwUAccountInfo(String  uuid, MicrosoftLogin.LoginData data){
         Http.put(apiBase + "/mcaccs/" + uuid + "/refreshtoken")
             .bearer(accessToken)

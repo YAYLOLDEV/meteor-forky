@@ -18,11 +18,17 @@ import java.util.Set;
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 public class AddApiAccountScreen extends AddAccountScreen {
+
     public AddApiAccountScreen(GuiTheme theme, AccountsScreen parent) {
         super(theme, "Add API Account", parent);
     }
     private static WLabel label = null;
+    public static boolean shouldContinue = true;
 
+    public static void rateLimited(){
+        label.set("Youre getting Rate-limited, please slow down!");
+        shouldContinue = false;
+    }
 
 
     @Override
@@ -33,6 +39,7 @@ public class AddApiAccountScreen extends AddAccountScreen {
 
         // Start async fetch
         locked = true;
+        shouldContinue = true;
         MeteorExecutor.execute(() -> {
             try {
                 // Collect existing UwU account IDs
@@ -50,10 +57,17 @@ public class AddApiAccountScreen extends AddAccountScreen {
                     locked = false;
                     mc.execute(() -> {
                         clear();
-                        add(theme.label("Error: Couldn't fetch Accounts"));
-                        add(theme.label("Please try again or your token is expired."));
-                        add(theme.button("Close")).widget().action = this::close;
-                        add(theme.button("Retry")).widget().action = this::reload;
+                        if(!shouldContinue) {
+                            add(theme.label("Error: Youre getting Rate Limited!"));
+                            add(theme.label("Microsofts Endpoint has a Rate-Limit of about 2 Requests per 2 minutes. Please wait 2 Minutes."));
+                            add(theme.button("Close")).widget().action = this::close;
+                            add(theme.button("Retry")).widget().action = this::reload;
+                        } else {
+                            add(theme.label("Error: Couldn't fetch Accounts"));
+                            add(theme.label("Please try again or your token is expired."));
+                            add(theme.button("Close")).widget().action = this::close;
+                            add(theme.button("Retry")).widget().action = this::reload;
+                        }
                     });
                     return;
                 }
@@ -74,6 +88,9 @@ public class AddApiAccountScreen extends AddAccountScreen {
     }
     private ApiAccount tryMultiple(int tries, Set<String > ex){
         for (int i = 0; i < tries; i++) {
+            if(!shouldContinue){
+                return null;
+            }
             ApiAccount account = tryGetAccount(ex);
             if(account != null){
                 return account;
