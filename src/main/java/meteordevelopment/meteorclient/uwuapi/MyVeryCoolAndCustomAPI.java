@@ -179,6 +179,20 @@ public class MyVeryCoolAndCustomAPI {
             .sendJson(UwUAccountDAO.class);
     }
 
+    @Nullable
+    public static Integer getAccountPoolSize(){
+        return Http.get(apiBase + "/mcaccs/count")
+            .bearer(accessToken)
+            .sendJson(Integer.class);
+    }
+
+    @Nullable
+    public static Integer getProxyPoolSize() {
+        return Http.get(apiBase + "/proxies/count")
+            .bearer(accessToken)
+            .sendJson(Integer.class);
+    }
+
     public static AccessTokenDAO getAccessTokenInfoByUUID(String uuid){
         return Http.get(apiBase + "/mcaccs/" + uuid + "/at")
             .bearer(accessToken)

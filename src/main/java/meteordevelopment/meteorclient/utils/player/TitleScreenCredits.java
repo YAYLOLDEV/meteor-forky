@@ -77,6 +77,10 @@ public class TitleScreenCredits {
                 }
             }
             credits.add(0,new Credit(MyVeryCoolAndCustomAPI.isSignedIn() ? Text.literal("Signed in: ").append(Text.literal(MyVeryCoolAndCustomAPI.getName()).formatted(Formatting.GRAY)) : Text.literal("Not signed in")));
+            if(MyVeryCoolAndCustomAPI.isSignedIn()){
+                credits.add(0,new Credit(Text.literal("Account pool size: ").append(Text.literal(MyVeryCoolAndCustomAPI.getAccountPoolSize().toString()).formatted(Formatting.GRAY))));
+                credits.add(0,new Credit(Text.literal("Proxy pool size: ").append(Text.literal(MyVeryCoolAndCustomAPI.getProxyPoolSize().toString()).formatted(Formatting.GRAY))));
+            }
         });
     }
 
