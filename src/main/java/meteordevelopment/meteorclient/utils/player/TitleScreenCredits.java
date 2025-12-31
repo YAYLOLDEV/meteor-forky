@@ -80,11 +80,8 @@ public class TitleScreenCredits {
             if(MyVeryCoolAndCustomAPI.isSignedIn()){
                 Integer accountPoolSize = MyVeryCoolAndCustomAPI.getAccountPoolSize();
                 Integer proxyPoolSize = MyVeryCoolAndCustomAPI.getProxyPoolSize();
-                if(accountPoolSize != null){
-                    credits.add(1,new Credit(Text.literal("Account pool size: ").append(Text.literal(accountPoolSize.toString()).formatted(Formatting.GRAY))));
-                }
-                if(proxyPoolSize != null){
-                    credits.add(1,new Credit(Text.literal("Proxy pool size: ").append(Text.literal(proxyPoolSize.toString()).formatted(Formatting.GRAY))));
+                if(accountPoolSize != null && proxyPoolSize != null){
+                    credits.add(1,new Credit(Text.literal("Account pool: ").append(Text.literal(accountPoolSize.toString()).formatted(Formatting.GRAY)).append(Text.literal(" Proxy pool: ").append(Text.literal(proxyPoolSize.toString()).formatted(Formatting.GRAY)))));
                 }
             }
         });
