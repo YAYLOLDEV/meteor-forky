@@ -10,12 +10,17 @@ import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.gui.screens.accounts.AddApiAccountScreen;
 import meteordevelopment.meteorclient.systems.accounts.Account;
 import meteordevelopment.meteorclient.systems.accounts.AccountType;
+import meteordevelopment.meteorclient.systems.accounts.Accounts;
 import meteordevelopment.meteorclient.systems.accounts.MicrosoftLogin;
-import meteordevelopment.meteorclient.systems.mcacapi.daos.UwUAccountDAO;
 import meteordevelopment.meteorclient.utils.misc.NbtException;
+import meteordevelopment.meteorclient.utils.render.MeteorToast;
 import meteordevelopment.meteorclient.uwuapi.MyVeryCoolAndCustomAPI;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.session.Session;
+import net.minecraft.client.toast.SystemToast;
+import net.minecraft.client.toast.ToastManager;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -88,13 +93,17 @@ public class ApiAccount extends Account<ApiAccount> {
             cache.uuid = cachedToken.uuid;
             cache.loadHead();
             isLoaded = true;
-            MeteorClient.LOG.info("[UwUAccount] Using cached token for {} ({})", cachedToken.username,
+            MeteorClient.LOG.info("[APIAccount] Using cached token for {} ({})", cachedToken.username,
                     cachedToken.uuid);
             return true;
         }
         MyVeryCoolAndCustomAPI.AccessTokenDAO accessTokenDAO = MyVeryCoolAndCustomAPI.getAccessTokenInfoByUUID(apiAccountId);
-        if(accessTokenDAO == null)
+        if(accessTokenDAO == null) {
+            MeteorClient.LOG.error("[APIAccount] This account is invalid!");
+            MinecraftClient.getInstance().getToastManager().add(new SystemToast(SystemToast.Type.PERIODIC_NOTIFICATION, Text.literal("Account " + cache.username + " is invalid!"), Text.literal("It may be outdated or its been removed from the pool.")));
+            Accounts.get().remove(this);
             return false;
+        }
         if (accessTokenDAO.getAccessToken() == null)
             return false;
         MicrosoftLogin.LoginData data = new MicrosoftLogin.LoginData(accessTokenDAO.getAccessToken(), null, accessTokenDAO.getUuid(), accessTokenDAO.getUsername());
@@ -102,7 +111,7 @@ public class ApiAccount extends Account<ApiAccount> {
             // Clear any stale cache entries for this account
             TOKEN_CACHE.remove(apiAccountId);
             MyVeryCoolAndCustomAPI.deleteAccount(apiAccountId);
-            MeteorClient.LOG.error("[UwUAccount] Failed to authenticate with Microsoft");
+            MeteorClient.LOG.error("[APIAccount] Failed to authenticate with Microsoft");
             return false;
         }
 
@@ -116,7 +125,7 @@ public class ApiAccount extends Account<ApiAccount> {
         TOKEN_CACHE.put(apiAccountId, new CachedApiToken(data.mcToken, data.username, data.uuid));
         isLoaded = true;
 
-        MeteorClient.LOG.info("[UwUAccount] Authenticated as {} ({})", data.username, data.uuid);
+        MeteorClient.LOG.info("[APIAccount] Authenticated as {} ({})", data.username, data.uuid);
         return true;
     }
 

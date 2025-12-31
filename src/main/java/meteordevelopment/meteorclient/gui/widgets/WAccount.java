@@ -69,6 +69,7 @@ public abstract class WAccount extends WHorizontalList {
                 login.minWidth = 0;
                 login.set("Login");
                 screen.locked = false;
+                if(refreshScreenAction != null) refreshScreenAction.run();
             });
         };
 
