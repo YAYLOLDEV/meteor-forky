@@ -23,14 +23,14 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 public class TitleScreenCredits {
-    private static final List<Credit> credits = new ArrayList<>();
+    private static final List<Credit> credits = new CopyOnWriteArrayList<>();
 
     private TitleScreenCredits() {
     }
